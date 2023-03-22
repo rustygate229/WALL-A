@@ -21,6 +21,7 @@ void ramp(int a, float distance);
 void rotate(int direction, float angle);
 bool detectLight(AnalogInputPin a);
 int kioskLight(AnalogInputPin);
+void lineFollowFuel();
 
 int main(void)
 {
@@ -28,67 +29,7 @@ int main(void)
 
     while (!detectLight(cdsCell));
 
-    // gets to plane
     
-    rotate(1, 65.0); // initial rotation
-    Sleep(0.5);
-    move(-1, 10); // move closer to ramp
-    Sleep(0.5);
-    rotate(-1, 17.0); // correction rotation
-    Sleep(0.5);
-    ramp(-1, 22); // goes up the ramp
-    Sleep(0.5);
-
-    
-    move(-1, 2); // moves 2 inches from the ramp
-    Sleep(0.5);
-    rotate(1, 90); // rotates clockwise 90 degrees
-    Sleep(0.5);
-    move(-1, 7); // lines back up with wall
-    Sleep(0.5);
-    move(1, 22); // moves forward 22 inches
-
-    // robot at middle of airplane
-
-    //gets to light
-    rotate(1, 80); // rotates to light
-    
-    // moves 1 inch at a time until it detects light
-    do {
-        move(1, 1);
-    } while (!detectLight(cdsCell));
-
-    float time = TimeNow();
-    int color = 0;
-
-    // detects light for 2 seconds
-    while (TimeNow() - time < 2) {
-        color = kioskLight(cdsCell);
-    }
-
-    // moves back for clearance
-    move(-1, 3);
-    rotate(-1, 85); // rotates to travel to button
-    
-    // if the light is blue
-    if (color == 1) {
-        move(-1, 5); 
-    // if light is red
-    } else if (color == 2) {
-        move(-1, 10.5);
-    }
-
-    // rotate and crash into button
-    rotate(-1, 78);
-    move(-1, 10);
-
-    // move back down the ramp
-    move(1, 14);
-    rotate(1, 80);
-    move(-1, 18);
-    move(1, 3);
-    rotate(1, 80);
-    move(-1, 15);
 }
 
 bool detectLight(AnalogInputPin cds) {
@@ -200,4 +141,9 @@ int kioskLight(AnalogInputPin cds) {
         LCD.WriteLine("Do not detect light");
         return 0;
     }
+}
+
+// line follow code
+void lineFollowFuel() {
+
 }
