@@ -2,10 +2,12 @@
 #include <FEHMotor.h>
 #include <FEHIO.h>
 #include <FEHUtility.h>
+#include <FEHServo.h>
+#include <FEHRPS.h>
 
 #define RADIUS 1.75
 #define LEFT_MOTORSPEED -28.0
-#define RIGHT_MOTORSPEED 26.0
+#define RIGHT_MOTORSPEED 25.0
 #define RAMP_LEFT -35.0
 #define RAMP_RIGHT 35.0
 #define PI 3.1415927
@@ -25,9 +27,77 @@ void lineFollowFuel();
 
 int main(void)
 {
-    AnalogInputPin cdsCell(FEHIO::P1_0);
+    RPS.InitializeTouchMenu();
+    
+    AnalogInputPin cdsCell(FEHIO::P0_5);
+    FEHServo arm_servo(FEHServo::Servo0);
+
+    arm_servo.SetMin(500);
+    arm_servo.SetMax(2500);
 
     while (!detectLight(cdsCell));
+
+    arm_servo.SetDegree(180);
+
+    move(-1,16);
+    Sleep(0.5);
+    rotate(-1,33);
+    Sleep(0.5);
+    move(-1,15);
+    Sleep(0.5);
+
+    int lever = RPS.GetCorrectLever();
+
+    LCD.Clear();
+    LCD.SetBackgroundColor(BLACK);
+    LCD.WriteLine(lever);
+
+    switch (lever)
+    {
+    case 0:
+        move(1,12);
+        break;
+    case 1:
+        move(1, 9);
+        break;
+    case 2:
+        move(1, 4);
+        break;
+
+    default:
+        // Something is very wrong
+        break;
+    }
+
+
+    Sleep(0.5);
+    rotate(1,85);
+    Sleep(0.5);
+    move(1, 1);
+
+    Sleep(0.5);
+
+    arm_servo.SetDegree(90);
+
+    Sleep(0.5);
+
+    arm_servo.SetDegree(180);
+
+    Sleep(0.5);
+
+    move(-1, 3);
+
+    Sleep(5.0);
+
+    arm_servo.SetDegree(30);
+
+    Sleep(0.5);
+
+    move(1, 3);
+
+    Sleep(0.5);
+
+    arm_servo.SetDegree(90);
 
     
 }
@@ -145,5 +215,94 @@ int kioskLight(AnalogInputPin cds) {
 
 // line follow code
 void lineFollowFuel() {
+    //initialize analog sensors
+    AnalogInputPin left_op(FEHIO::P1_0);
+    AnalogInputPin middle_op(FEHIO::P1_3);
+    AnalogInputPin right_op(FEHIO::P1_7);
+
+    // all possible line states
+    enum LINESTATES {
+        MIDDLE,
+        RIGHT,
+        LEFT,
+        RIGHTTURN,
+        LEFTTURN,
+        OFF
+    };
+
+    int state = MIDDLE; // Set the initial state
+
+    while (state != OFF) { // I will follow this line forever!
+
+        switch(state) {
+
+            // If I am in the middle of the line...
+
+            case MIDDLE:
+
+                // Set motor powers for driving straight
+                right_motor.SetPercent(RIGHT_MOTORSPEED);
+                left_motor.SetPercent(LEFT_MOTORSPEED);
+
+                /* Drive */
+
+                if (right_op.Value() < 2.4) {
+
+                    state = RIGHT; // update a new state
+
+                }
+
+                /* Code for if left sensor is on the line */
+                if (left_op.Value() < 2.6) {
+                    state = LEFT;
+                }
+
+
+                break;
+
+            // If the right sensor is on the line...
+            case RIGHT:
+
+                // Set motor powers for right turn
+                right_motor.SetPercent(25);
+                left_motor.SetPercent(-12);
+
+                /* Drive */
+
+                if(middle_op.Value() <= 2.35) {
+
+                    state = MIDDLE;
+
+                }
+
+                break;
+
+            // If the left sensor is on the line...
+            case LEFT:
+
+                // Set motor powers for right turn
+                right_motor.SetPercent(12);
+                left_motor.SetPercent(-25);
+
+                /* Drive */
+
+                if(middle_op.Value() <= 2.35) {
+
+                    state = MIDDLE;
+
+                }
+
+                break;
+
+            default: // Error. Something is very wrong.
+
+                break;
+
+        }
+
+        // Sleep a bit
+        Sleep(50);
+
+    }
 
 }
