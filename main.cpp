@@ -2,10 +2,12 @@
 #include <FEHMotor.h>
 #include <FEHIO.h>
 #include <FEHUtility.h>
+#include <FEHServo.h>
+#include <FEHRPS.h>
 
 #define RADIUS 1.75
 #define LEFT_MOTORSPEED -28.0
-#define RIGHT_MOTORSPEED 26.0
+#define RIGHT_MOTORSPEED 25.0
 #define RAMP_LEFT -35.0
 #define RAMP_RIGHT 35.0
 #define PI 3.1415927
@@ -21,74 +23,55 @@ void ramp(int a, float distance);
 void rotate(int direction, float angle);
 bool detectLight(AnalogInputPin a);
 int kioskLight(AnalogInputPin);
+void lineFollowFuel();
+bool checkOnLine(float value);
 
 int main(void)
 {
-    AnalogInputPin cdsCell(FEHIO::P1_0);
+
+    FEHServo pass_servo(FEHServo::Servo3);
+    AnalogInputPin cdsCell(FEHIO::P0_5);
+
+    pass_servo.SetMin(500);
+    pass_servo.SetMax(2379);
 
     while (!detectLight(cdsCell));
 
-    // gets to plane
-    
+    pass_servo.SetDegree(10);
+
     rotate(1, 65.0); // initial rotation
     Sleep(0.5);
     move(-1, 10); // move closer to ramp
     Sleep(0.5);
     rotate(-1, 17.0); // correction rotation
     Sleep(0.5);
-    ramp(-1, 22); // goes up the ramp
+    ramp(-1, 23); // goes up the ramp
     Sleep(0.5);
-
-    
-    move(-1, 2); // moves 2 inches from the ramp
+    rotate(1, 85.0);
     Sleep(0.5);
-    rotate(1, 90); // rotates clockwise 90 degrees
+    move(-1, 9);
     Sleep(0.5);
-    move(-1, 7); // lines back up with wall
+    move(1, 12);
+
     Sleep(0.5);
-    move(1, 22); // moves forward 22 inches
-
-    // robot at middle of airplane
-
-    //gets to light
-    rotate(1, 80); // rotates to light
-    
-    // moves 1 inch at a time until it detects light
-    do {
-        move(1, 1);
-    } while (!detectLight(cdsCell));
-
-    float time = TimeNow();
-    int color = 0;
-
-    // detects light for 2 seconds
-    while (TimeNow() - time < 2) {
-        color = kioskLight(cdsCell);
-    }
-
-    // moves back for clearance
-    move(-1, 3);
-    rotate(-1, 85); // rotates to travel to button
-    
-    // if the light is blue
-    if (color == 1) {
-        move(-1, 5); 
-    // if light is red
-    } else if (color == 2) {
-        move(-1, 10.5);
-    }
-
-    // rotate and crash into button
-    rotate(-1, 78);
-    move(-1, 10);
-
-    // move back down the ramp
-    move(1, 14);
-    rotate(1, 80);
-    move(-1, 18);
+    rotate(1, 77);
+    Sleep(0.5);
+    pass_servo.SetDegree(180);
+    move(1, 6);
+    Sleep(0.25);
+    pass_servo.SetDegree(110);
     move(1, 3);
-    rotate(1, 80);
-    move(-1, 15);
+    Sleep(0.25);
+    pass_servo.SetDegree(85);
+    move(1, 2.5);
+
+    // lower lever
+    pass_servo.SetDegree(10);
+    move(1, 2);
+    pass_servo.SetDegree(85);
+    move(-1, 6);
+
+    
 }
 
 bool detectLight(AnalogInputPin cds) {
@@ -157,7 +140,6 @@ void rotate(int direction, float angle) {
     left_encoder.ResetCounts();
 
     //Set both motors to desired percent
-    //hint: set right motor backwards, left motor forwards
     right_motor.SetPercent(direction * -RIGHT_MOTORSPEED);
     left_motor.SetPercent(direction * LEFT_MOTORSPEED);
 
@@ -199,5 +181,118 @@ int kioskLight(AnalogInputPin cds) {
         LCD.SetBackgroundColor(BLACK);
         LCD.WriteLine("Do not detect light");
         return 0;
+    }
+}
+
+// line follow code
+void lineFollowFuel() {
+    //initialize analog sensors
+    AnalogInputPin left_op(FEHIO::P1_0);
+    AnalogInputPin middle_op(FEHIO::P1_3);
+    AnalogInputPin right_op(FEHIO::P1_7);
+
+    // all possible line states
+    enum LINESTATES {
+        MIDDLE,
+        RIGHT,
+        LEFT,
+        RIGHTTURN,
+        LEFTTURN,
+        OFF
+    };
+
+    int state = MIDDLE; // Set the initial state
+
+    while (state != OFF) { // I will follow this line forever!
+
+        switch(state) {
+
+            // If I am in the middle of the line...
+
+            case MIDDLE:
+
+                // Set motor powers for driving straight
+                right_motor.SetPercent(RIGHT_MOTORSPEED);
+                left_motor.SetPercent(LEFT_MOTORSPEED);
+
+                /* Drive */
+
+                if (right_op.Value() < 2.4) {
+
+                    state = RIGHT; // update a new state
+
+                }
+
+                /* Code for if left sensor is on the line */
+                if (left_op.Value() < 2.6) {
+                    state = LEFT;
+                }
+
+
+                break;
+
+            // If the right sensor is on the line...
+            case RIGHT:
+
+                // Set motor powers for right turn
+                right_motor.SetPercent(25);
+                left_motor.SetPercent(-12);
+
+                /* Drive */
+
+                if(middle_op.Value() <= 2.35) {
+
+                    state = MIDDLE;
+
+                }
+
+                break;
+
+            // If the left sensor is on the line...
+            case LEFT:
+
+                // Set motor powers for right turn
+                right_motor.SetPercent(12);
+                left_motor.SetPercent(-25);
+
+                /* Drive */
+
+                if(middle_op.Value() <= 2.35) {
+
+                    state = MIDDLE;
+
+                }
+
+                break;
+
+            default: // Error. Something is very wrong.
+
+                break;
+
+        }
+
+        // Sleep a bit
+        Sleep(50);
+
+    }
+
+}
+
+bool checkOnLine(float value) {
+    //initialize analog sensors
+    AnalogInputPin left_op(FEHIO::P1_0);
+    AnalogInputPin middle_op(FEHIO::P1_3);
+    AnalogInputPin right_op(FEHIO::P1_7);
+
+    float leftValue = left_op.Value();
+    float middleValue = middle_op.Value();
+    float rightValue = right_op.Value();
+
+    float average = (leftValue + middleValue + rightValue) / 3;
+
+    if (average <= value) {
+        return true;
+    } else {
+        return false;
     }
 }
