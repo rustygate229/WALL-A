@@ -12,8 +12,6 @@
 #define RAMP_RIGHT 35.0
 #define PI 3.1415927
 
-#define PULSE_POWER_turn 11
-
 //Declarations for encoders & motors
 DigitalEncoder right_encoder(FEHIO::P2_6);
 DigitalEncoder left_encoder(FEHIO::P2_7);
@@ -26,6 +24,7 @@ void rotate(int direction, float angle);
 bool detectLight(AnalogInputPin a);
 int kioskLight(AnalogInputPin);
 void lineFollowFuel();
+bool checkOnLine(float value);
 
 int main(void)
 {
@@ -279,3 +278,21 @@ void lineFollowFuel() {
 
 }
 
+bool checkOnLine(float value) {
+    //initialize analog sensors
+    AnalogInputPin left_op(FEHIO::P1_0);
+    AnalogInputPin middle_op(FEHIO::P1_3);
+    AnalogInputPin right_op(FEHIO::P1_7);
+
+    float leftValue = left_op.Value();
+    float middleValue = middle_op.Value();
+    float rightValue = right_op.Value();
+
+    float average = (leftValue + middleValue + rightValue) / 3;
+
+    if (average <= value) {
+        return true;
+    } else {
+        return false;
+    }
+}
