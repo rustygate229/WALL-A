@@ -24,80 +24,52 @@ void rotate(int direction, float angle);
 bool detectLight(AnalogInputPin a);
 int kioskLight(AnalogInputPin);
 void lineFollowFuel();
+bool checkOnLine(float value);
 
 int main(void)
 {
-    RPS.InitializeTouchMenu();
-    
-    AnalogInputPin cdsCell(FEHIO::P0_5);
-    FEHServo arm_servo(FEHServo::Servo0);
 
-    arm_servo.SetMin(500);
-    arm_servo.SetMax(2500);
+    FEHServo pass_servo(FEHServo::Servo3);
+    AnalogInputPin cdsCell(FEHIO::P0_5);
+
+    pass_servo.SetMin(500);
+    pass_servo.SetMax(2379);
 
     while (!detectLight(cdsCell));
 
-    arm_servo.SetDegree(180);
+    pass_servo.SetDegree(10);
 
-    move(-1,16);
+    rotate(1, 65.0); // initial rotation
     Sleep(0.5);
-    rotate(-1,33);
+    move(-1, 10); // move closer to ramp
     Sleep(0.5);
-    move(-1,15);
+    rotate(-1, 17.0); // correction rotation
     Sleep(0.5);
-
-    int lever = RPS.GetCorrectLever();
-
-    LCD.Clear();
-    LCD.SetBackgroundColor(BLACK);
-    LCD.WriteLine(lever);
-
-    switch (lever)
-    {
-    case 0:
-        move(1,12);
-        break;
-    case 1:
-        move(1, 9);
-        break;
-    case 2:
-        move(1, 4);
-        break;
-
-    default:
-        // Something is very wrong
-        break;
-    }
-
+    ramp(-1, 23); // goes up the ramp
+    Sleep(0.5);
+    rotate(1, 85.0);
+    Sleep(0.5);
+    move(-1, 9);
+    Sleep(0.5);
+    move(1, 12);
 
     Sleep(0.5);
-    rotate(1,85);
+    rotate(1, 77);
     Sleep(0.5);
-    move(1, 1);
-
-    Sleep(0.5);
-
-    arm_servo.SetDegree(90);
-
-    Sleep(0.5);
-
-    arm_servo.SetDegree(180);
-
-    Sleep(0.5);
-
-    move(-1, 3);
-
-    Sleep(5.0);
-
-    arm_servo.SetDegree(30);
-
-    Sleep(0.5);
-
+    pass_servo.SetDegree(180);
+    move(1, 6);
+    Sleep(0.25);
+    pass_servo.SetDegree(110);
     move(1, 3);
+    Sleep(0.25);
+    pass_servo.SetDegree(85);
+    move(1, 2.5);
 
-    Sleep(0.5);
-
-    arm_servo.SetDegree(90);
+    // lower lever
+    pass_servo.SetDegree(10);
+    move(1, 2);
+    pass_servo.SetDegree(85);
+    move(-1, 6);
 
     
 }
@@ -168,7 +140,6 @@ void rotate(int direction, float angle) {
     left_encoder.ResetCounts();
 
     //Set both motors to desired percent
-    //hint: set right motor backwards, left motor forwards
     right_motor.SetPercent(direction * -RIGHT_MOTORSPEED);
     left_motor.SetPercent(direction * LEFT_MOTORSPEED);
 
@@ -305,4 +276,23 @@ void lineFollowFuel() {
 
     }
 
+}
+
+bool checkOnLine(float value) {
+    //initialize analog sensors
+    AnalogInputPin left_op(FEHIO::P1_0);
+    AnalogInputPin middle_op(FEHIO::P1_3);
+    AnalogInputPin right_op(FEHIO::P1_7);
+
+    float leftValue = left_op.Value();
+    float middleValue = middle_op.Value();
+    float rightValue = right_op.Value();
+
+    float average = (leftValue + middleValue + rightValue) / 3;
+
+    if (average <= value) {
+        return true;
+    } else {
+        return false;
+    }
 }
