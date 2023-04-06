@@ -4,10 +4,10 @@
 
 #define PI 3.1415927
 #define RADIUS 1.75
-#define LEFT_MOTORSPEED -28.0
-#define RIGHT_MOTORSPEED 25.0
-#define RAMP_LEFT -35.0
-#define RAMP_RIGHT 35.0
+#define LEFT_MOTORSPEED -25.0
+#define RIGHT_MOTORSPEED 28.0
+#define RAMP_LEFT -36.0
+#define RAMP_RIGHT 39.0
 
 extern FEHMotor right_motor;
 extern FEHMotor left_motor;
