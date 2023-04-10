@@ -5,6 +5,8 @@ DigitalEncoder right_encoder(FEHIO::P2_6);
 DigitalEncoder left_encoder(FEHIO::P2_7);
 FEHMotor right_motor(FEHMotor::Motor0, 9.0);
 FEHMotor left_motor(FEHMotor::Motor1, 9.0);
+DigitalInputPin right_bump(FEHIO::P1_7);
+DigitalInputPin left_bump(FEHIO::P1_6);
 
 void move(float direction, float distance) {
 

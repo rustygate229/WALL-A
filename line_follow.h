@@ -1,3 +1,3 @@
 #include <FEHIO.h>
 
-bool checkOnLine(float value);
+bool checkOnLine();

@@ -11,27 +11,67 @@ void pulse_x(float x_coordinate, int orientation){
 
     LCD.WriteLine(RPS.X());
 
-    int count = 0; 
-
     // Check if receiving proper RPS coordinates and whether the robot is within an acceptable range
     while ((RPS.X() != -1) && (RPS.X() < x_coordinate - 0.5 || RPS.X() > x_coordinate + 0.5))
     {
-        if (count > 15) {
-            break;
-        }
 
-        if (RPS.X() > x_coordinate + 1)
+        LCD.WriteLine(RPS.X());
+        if (RPS.X() > x_coordinate + 0.5)
         {
             // Pulse the motors for a short duration in the correct direction
             move(-power, .5);
         }
-        else if (RPS.X() < x_coordinate - 1)
+        else if (RPS.X() < x_coordinate - 0.5)
         {
             // Pulse the motors for a short duration in the correct direction
             move(power, .5);
         }
         
         Sleep(.35);
-        count++;
     }
+}
+
+void check_heading(float heading)
+{
+
+    int dir = 1;
+    
+    // Check if receiving proper RPS coordinates and whether the robot is within an acceptable range
+    while ((RPS.Y() != -1) && (RPS.Heading() < heading - 3 || RPS.Heading() > heading + 3))
+    {
+        LCD.WriteLine(RPS.Heading());
+        if (RPS.Heading() < heading - 3)
+        {
+            dir = -1;
+        }
+        else if (RPS.Heading() > heading + 3)
+        {
+            dir = 1;
+        }
+        if (heading - RPS.Heading() >=  180){
+            dir=1;
+        }
+        if(RPS.Heading()-heading >= 180){
+            dir=-1;
+        }
+        rotate(dir,4);
+        Sleep(.35);
+    }
+}
+
+void hit_bump(float angle) {
+
+    // Drive
+    right_motor.SetPercent(RIGHT_MOTORSPEED);
+    left_motor.SetPercent(LEFT_MOTORSPEED);
+
+    float time = TimeNow();
+    while ((left_bump.Value() || right_bump.Value()) || (TimeNow() - time < 2));
+
+    if ((!left_bump.Value() && !right_bump.Value())) {
+        check_heading(angle);
+    }
+
+    right_motor.Stop();
+    left_motor.Stop();
 }
