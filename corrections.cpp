@@ -97,7 +97,10 @@ void hit_bump() {
     right_motor.SetPercent(RIGHT_MOTORSPEED);
     left_motor.SetPercent(LEFT_MOTORSPEED);
     
+    // record time
     float time = TimeNow();
+
+    // if bump switch is not hit and elapsed less than 2 seconds, wait
     while ((left_bump.Value() || right_bump.Value()) && (TimeNow() - time < 2));
 
     right_motor.Stop();
