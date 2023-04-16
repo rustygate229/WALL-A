@@ -81,3 +81,29 @@ void rotate(int direction, float angle) {
     left_motor.Stop();
 
 }
+
+void buttonHit(float direction, float distance) {
+
+    //Calculate # of counts
+    int counts = (distance * 318) / (2 * PI * RADIUS);
+
+    //Reset encoder counts
+    right_encoder.ResetCounts();
+    left_encoder.ResetCounts();
+
+    //Set both motors to desired percent
+    right_motor.SetPercent(direction * RIGHT_MOTORSPEED);
+    left_motor.SetPercent(direction * LEFT_MOTORSPEED);
+    
+    float time = TimeNow();
+    while((left_encoder.Counts() + right_encoder.Counts()) / 2. < counts)
+    {
+        if (TimeNow() - time > 2.5) {
+            break;
+        }
+    }
+
+    //Turn off motors
+    right_motor.Stop();
+    left_motor.Stop();
+}

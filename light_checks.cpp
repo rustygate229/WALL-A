@@ -17,11 +17,12 @@ int kioskLight() {
 
     LCD.Clear();
     float cdsValue = cdsCell.Value();
-
+    LCD.WriteLine(cdsValue);
+    
     // if cds cell detects light
     if (cdsValue < 1.5) {
         // if light is blue
-        if (cdsValue > 0.4) {
+        if (cdsValue > 0.6) {
             LCD.SetBackgroundColor(BLUE);
             return 1;
         // if light is red
