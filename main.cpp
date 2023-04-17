@@ -28,7 +28,7 @@ int main(void)
 {
     /* Initializiation Actions */
     FEHServo pass_servo(FEHServo::Servo3);
-    FEHServo fuel_servo(FEHServo::Servo7);
+    FEHServo fuel_servo(FEHServo::Servo0);
 
     // Set Min and Max of servos
     pass_servo.SetMin(500);
