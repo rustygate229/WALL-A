@@ -28,7 +28,7 @@ int main(void)
 {
     /* Initializiation Actions */
     FEHServo pass_servo(FEHServo::Servo3);
-    FEHServo fuel_servo(FEHServo::Servo0);
+    FEHServo fuel_servo(FEHServo::Servo7);
 
     // Set Min and Max of servos
     pass_servo.SetMin(500);
@@ -72,6 +72,8 @@ void LuggageTask(FEHServo pass_servo) {
     Sleep(0.2);
     ramp(-1, 22); // goes up the ramp
     Sleep(0.2);
+    pulse_y(41,-1);
+    Sleep(.2);
     rotate(-1, 85.0);
     Sleep(0.2);
 

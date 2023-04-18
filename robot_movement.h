@@ -14,8 +14,11 @@ extern FEHMotor left_motor;
 extern DigitalInputPin left_bump;
 extern DigitalInputPin right_bump;
 
+// takes in the direction and distance
 void move(float a, float distance);
+// takes in the direction and distance
 void buttonHit(float a, float distance);
+// takes in the direction and distance
 void ramp(int a, float distance);
+// takes in the direction and distance
 void rotate(int direction, float angle);
-void hit_bump(float angle);
